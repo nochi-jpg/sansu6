@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>さんすうスペースラボ UIサンプル</title>
+<style>
+@font-face{font-family:"ZMG";src:url("../fonts/zmg-700.woff2") format("woff2");font-weight:700}
+@font-face{font-family:"ZMG";src:url("../fonts/zmg-900.woff2") format("woff2");font-weight:900}
+:root{
+  --ink:#4d4270;--ink2:#8a7aa8;--white:#fffdfb;
+  --lav:#b9a6f2;--lav2:#e6defd;--mint:#8fdcc0;--mint2:#d6f5ea;--pink:#ffadcf;--pink2:#ffe3ee;
+  --sky:#9fd3ff;--sky2:#ddf0ff;--lemon:#ffe08a;--lemon2:#fff4cc;--peach:#ffc2a3;
+  --glass:rgba(255,253,251,.92);
+  --shadow:0 6px 0 rgba(60,40,120,.25),0 14px 30px rgba(20,10,60,.35);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:#1d1838;font-family:"ZMG","Zen Maru Gothic","BIZ UDPGothic","Yu Gothic UI",sans-serif;font-weight:700;color:var(--ink);user-select:none}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{position:absolute;left:0;top:0;width:1280px;height:720px;transform-origin:0 0;overflow:hidden;
+  background:radial-gradient(ellipse at 20% 10%,#4b3f8f 0%,rgba(75,63,143,0) 55%),radial-gradient(ellipse at 85% 90%,#2f5f8f 0%,rgba(47,95,143,0) 50%),linear-gradient(180deg,#2a2258,#1b2a55)}
+.stars{position:absolute;inset:0;pointer-events:none;background-image:
+  radial-gradient(2px 2px at 40px 60px,#fff,transparent),radial-gradient(1.5px 1.5px at 200px 140px,#fff,transparent),
+  radial-gradient(2px 2px at 520px 40px,#fff,transparent),radial-gradient(1.5px 1.5px at 760px 120px,#fff,transparent),
+  radial-gradient(2px 2px at 980px 70px,#fff,transparent),radial-gradient(1.5px 1.5px at 1180px 160px,#fff,transparent),
+  radial-gradient(1.5px 1.5px at 120px 420px,#fff,transparent),radial-gradient(2px 2px at 640px 380px,#fff,transparent),
+  radial-gradient(1.5px 1.5px at 1100px 460px,#fff,transparent),radial-gradient(2px 2px at 330px 650px,#fff,transparent);
+  opacity:.8;animation:tw 4s ease-in-out infinite alternate}
+@keyframes tw{from{opacity:.45}to{opacity:.95}}
+.scr{position:absolute;inset:0;display:none}
+.scr.on{display:block;animation:fin .35s ease}
+@keyframes fin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ボタン（えいたんと同じ形） */
+.btn{position:absolute;display:flex;align-items:center;justify-content:center;gap:8px;border:4px solid #fff;border-radius:999px;font-family:inherit;font-weight:900;color:#fff;font-size:24px;cursor:pointer;letter-spacing:.04em;white-space:nowrap;
+  background:linear-gradient(180deg,var(--c1,#c9b8ff),var(--c2,#a48ff0));box-shadow:0 6px 0 var(--c3,#8270cf),0 12px 22px rgba(10,5,40,.35);text-shadow:0 2px 0 rgba(0,0,0,.12);
+  transition:transform .18s cubic-bezier(.3,1.6,.5,1),box-shadow .18s,filter .2s;outline:none}
+.btn::after{content:"";position:absolute;left:14%;right:14%;top:6px;height:30%;border-radius:999px;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));pointer-events:none}
+.btn:hover{transform:translateY(-3px) scale(1.03);filter:brightness(1.05)}
+.btn:active{transform:translateY(4px) scale(.97);box-shadow:0 2px 0 var(--c3,#8270cf)}
+.btn.dis{filter:grayscale(.8);opacity:.5;pointer-events:none}
+.btn.mint{--c1:#a6ecd2;--c2:#6fd0ad;--c3:#4fb28f}
+.btn.pink{--c1:#ffc4dd;--c2:#ff92bf;--c3:#e46f9f}
+.btn.sky{--c1:#bfe3ff;--c2:#83c2f7;--c3:#5d9fd8}
+.btn.lemon{--c1:#ffeaa8;--c2:#ffcf5c;--c3:#e0a93a;color:#7a5a20;text-shadow:none}
+.btn.peach{--c1:#ffd2bd;--c2:#ffa98a;--c3:#e08766}
+.btn.white{--c1:#ffffff;--c2:#f1ebff;--c3:#cfc3ee;color:var(--ink);text-shadow:none}
+.btn.sel{--c1:#ffeaa8;--c2:#ffcf5c;--c3:#e0a93a;color:#7a5a20;text-shadow:none}
+/* 大きさは3種類だけ：L(高さ64) M(高さ56) S(高さ48) */
+.L{height:64px;font-size:28px}.M{height:56px;font-size:24px}.S{height:48px;font-size:20px}
+
+/* 上のバー（全画面共通） */
+.bar{position:absolute;left:0;top:0;width:1280px;height:76px}
+.back{left:24px;top:12px;width:150px}
+.back .arw{width:0;height:0;border-top:9px solid transparent;border-bottom:9px solid transparent;border-right:13px solid currentColor}
+.bar .ttl{position:absolute;left:200px;right:200px;top:12px;height:52px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:900;letter-spacing:.06em;text-shadow:0 3px 0 rgba(0,0,0,.25)}
+.bar .chip{position:absolute;right:24px;top:16px;width:150px;height:44px;border-radius:999px;background:rgba(255,255,255,.16);border:3px solid rgba(255,255,255,.6);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center}
+
+/* パネル */
+.panel{position:absolute;background:var(--glass);border:4px solid #fff;border-radius:28px;box-shadow:var(--shadow)}
+.q{position:absolute;left:24px;top:84px;width:880px;height:52px;border-radius:18px;background:#fff;border:4px solid var(--lav2);display:flex;align-items:center;padding:0 22px;font-size:24px;font-weight:900}
+
+/* うさとろ */
+#usa{position:absolute;right:16px;bottom:4px;width:150px;height:150px;pointer-events:none;z-index:20}
+#usa img{width:100%;height:100%;object-fit:contain;animation:fuwa 3.2s ease-in-out infinite;filter:drop-shadow(0 8px 10px rgba(0,0,0,.35))}
+@keyframes fuwa{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+#usa.jump img{animation:jump .6s cubic-bezier(.3,1.6,.5,1)}
+@keyframes jump{0%{transform:translateY(0) scale(1)}30%{transform:translateY(-40px) scale(1.08,.94)}60%{transform:translateY(0) scale(.94,1.06)}100%{transform:translateY(0)}}
+#usa.sad img{animation:sad 1s ease}
+@keyframes sad{0%,100%{transform:translateY(0)}50%{transform:translateY(10px) rotate(-8deg) scale(.96)}}
+#bal{position:absolute;left:24px;right:180px;bottom:14px;height:104px;background:#fff;border:4px solid var(--lav2);border-radius:26px;padding:12px 26px;font-size:23px;line-height:1.55;display:flex;align-items:center;z-index:19;box-shadow:0 6px 0 rgba(60,40,120,.2)}
+#bal::after{content:"";position:absolute;right:-22px;bottom:30px;border-left:24px solid #fff;border-top:12px solid transparent;border-bottom:12px solid transparent}
+#bal .nm{position:absolute;left:22px;top:-16px;height:30px;padding:0 14px;border-radius:999px;background:var(--sky);color:#fff;font-size:16px;display:flex;align-items:center;border:3px solid #fff}
+.notalk #bal,.notalk #usa{display:none}
+
+/* タイトル */
+.logo{position:absolute;left:0;right:0;top:150px;text-align:center;color:#fff}
+.logo .s{font-size:30px;letter-spacing:.3em;opacity:.9}
+.logo .m{font-size:92px;font-weight:900;letter-spacing:.06em;text-shadow:0 6px 0 #7a63d6,0 14px 30px rgba(0,0,0,.4)}
+.planet{position:absolute;border-radius:50%}
+.tusa{position:absolute;left:540px;top:380px;width:200px;height:200px;animation:fuwa 3.2s ease-in-out infinite}
+
+/* カード */
+.card{position:absolute;background:#fff;border:4px solid #fff;border-radius:24px;box-shadow:var(--shadow);cursor:pointer;transition:transform .18s cubic-bezier(.3,1.6,.5,1)}
+.card:hover{transform:translateY(-4px) scale(1.02)}
+.card.empty{background:rgba(255,255,255,.08);border:4px dashed rgba(255,255,255,.4);box-shadow:none;cursor:default;color:rgba(255,255,255,.6);display:flex;align-items:center;justify-content:center;font-size:20px}
+.card.empty:hover{transform:none}
+.ucard .g{position:absolute;left:18px;top:16px;height:32px;padding:0 14px;border-radius:999px;background:var(--pink);color:#fff;font-size:18px;display:flex;align-items:center}
+.ucard .t{position:absolute;left:18px;right:18px;top:62px;font-size:30px;font-weight:900}
+.ucard .gauge{position:absolute;left:18px;right:18px;bottom:20px;height:22px;border-radius:999px;background:var(--lav2);overflow:hidden}
+.ucard .gauge i{display:block;height:100%;background:linear-gradient(90deg,var(--mint),#5fc9a3);border-radius:999px}
+.ucard .n{position:absolute;right:18px;bottom:48px;font-size:18px;color:var(--ink2)}
+.pager{position:absolute;left:0;right:0;top:600px;height:0}
+.pnum{position:absolute;left:560px;top:530px;width:160px;height:48px;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center}
+
+.mcard{width:232px;height:420px;top:110px}
+.mcard .ic{position:absolute;left:36px;top:24px;width:152px;height:152px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.mcard .t{position:absolute;left:0;right:0;top:192px;text-align:center;font-size:32px;font-weight:900}
+.mcard .d{position:absolute;left:12px;right:12px;top:248px;text-align:center;font-size:19px;color:var(--ink2);line-height:1.4}
+.mcard .p{position:absolute;left:36px;right:36px;bottom:24px;height:34px;border-radius:999px;background:var(--lav2);font-size:18px;display:flex;align-items:center;justify-content:center;gap:6px}
+
+.scard{width:280px;height:200px}
+.scard .no{position:absolute;left:18px;top:16px;width:64px;height:36px;border-radius:999px;background:var(--sky);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center}
+.scard .t{position:absolute;left:18px;right:18px;top:66px;font-size:24px;font-weight:900;line-height:1.35}
+.scard .st{position:absolute;right:16px;top:12px;width:44px;height:44px}
+.scard .d{position:absolute;left:18px;right:18px;bottom:16px;font-size:16px;color:var(--ink2)}
+
+/* 説明スライド */
+.side{left:924px;top:84px;width:332px;height:472px}
+.side .h{position:absolute;left:20px;right:20px;top:18px;font-size:22px;font-weight:900;color:var(--ink2)}
+.side .pt{position:absolute;left:20px;right:20px;top:58px;font-size:22px;line-height:1.6}
+.side .pt b{color:#e46f9f}
+.dots{position:absolute;left:0;right:0;top:388px;display:flex;justify-content:center;gap:10px}
+.dots i{width:14px;height:14px;border-radius:50%;background:var(--lav2)}
+.dots i.on{background:var(--lav)}
+.figbox{left:24px;top:84px;width:880px;height:472px}
+.kbadge{position:absolute;left:24px;top:20px;height:44px;padding:0 20px;border-radius:999px;background:var(--lemon);font-size:24px;font-weight:900;color:#7a5a20;display:flex;align-items:center}
+
+svg text{font-family:"ZMG",sans-serif;font-weight:700}
+
+/* みわける */
+.cell{position:absolute;width:284px;height:204px;background:#fff;border:4px solid var(--lav2);border-radius:20px;cursor:pointer;transition:transform .15s}
+.cell:hover{transform:scale(1.02)}
+.cell.base{background:var(--sky2);border-color:var(--sky);cursor:default}
+.cell.base:hover{transform:none}
+.cell.on{border-color:#ffcf5c;background:var(--lemon2);box-shadow:0 0 0 4px #ffcf5c}
+.cell.ok{border-color:#6fd0ad;background:var(--mint2)}
+.cell.ng{border-color:#ff92bf;background:var(--pink2)}
+.cell .nm{position:absolute;left:10px;top:8px;width:40px;height:40px;border-radius:50%;background:var(--lav);color:#fff;font-size:22px;font-weight:900;display:flex;align-items:center;justify-content:center;z-index:2}
+.cell.base .nm{background:var(--sky)}
+.cell svg{position:absolute;left:0;top:0}
+.prog{position:absolute;left:20px;right:20px;top:20px;height:40px;display:flex;align-items:center;justify-content:center;gap:10px}
+.prog i{width:36px;height:12px;border-radius:999px;background:var(--lav2)}
+.prog i.on{background:var(--lav)}.prog i.done{background:var(--mint)}
+
+/* かく */
+#grid{position:absolute;left:24px;top:144px;cursor:crosshair}
+.tool{position:absolute;left:20px;width:292px}
+
+/* テンキー */
+.disp{position:absolute;left:20px;right:20px;top:20px;height:72px;border-radius:18px;background:#fff;border:4px solid var(--lav2);display:flex;align-items:center;justify-content:flex-end;padding:0 20px;font-size:40px;font-weight:900;gap:10px}
+.disp .u{font-size:24px;color:var(--ink2)}
+.key{width:84px}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+<div class="stars"></div>
+
+<!-- 1 タイトル -->
+<section class="scr on" id="s-title">
+  <div class="planet" style="left:-80px;top:470px;width:360px;height:360px;background:radial-gradient(circle at 35% 30%,#ffd9e8,#ff92bf 60%,#c96ea0)"></div>
+  <div class="planet" style="left:1040px;top:60px;width:180px;height:180px;background:radial-gradient(circle at 35% 30%,#d6f5ea,#6fd0ad 60%,#3f9f80)"></div>
+  <div class="logo"><div class="s">しょうがっこう の さんすう</div><div class="m">さんすうスペースラボ</div></div>
+  <img class="tusa" src="../images/usatoro.webp" alt="">
+  <button class="btn mint L" style="left:490px;top:604px;width:300px" onclick="go('units')">はじめる</button>
+  <button class="btn white M" style="left:1066px;top:640px;width:190px">せってい</button>
+</section>
+
+<!-- 2 単元えらび -->
+<section class="scr" id="s-units">
+  <div class="bar"><button class="btn white M back" onclick="go('title')"><span class="arw"></span>もどる</button><div class="ttl">たんげん を えらぼう</div></div>
+  <div class="card ucard" style="left:64px;top:96px;width:360px;height:196px" onclick="go('unit')">
+    <div class="g">6年</div><div class="t">拡大図と縮図</div><div class="n">ステージ 7 / 24</div><div class="gauge"><i style="width:29%"></i></div>
+  </div>
+  <div class="card empty" style="left:460px;top:96px;width:360px;height:196px">これから ふえるよ</div>
+  <div class="card empty" style="left:856px;top:96px;width:360px;height:196px">これから ふえるよ</div>
+  <div class="card empty" style="left:64px;top:310px;width:360px;height:196px">これから ふえるよ</div>
+  <div class="card empty" style="left:460px;top:310px;width:360px;height:196px">これから ふえるよ</div>
+  <div class="card empty" style="left:856px;top:310px;width:360px;height:196px">これから ふえるよ</div>
+  <button class="btn white M dis" style="left:380px;top:526px;width:160px">まえ</button>
+  <div class="pnum">1 / 1</div>
+  <button class="btn white M dis" style="left:740px;top:526px;width:160px">つぎ</button>
+</section>
+
+<!-- 3 単元ホーム -->
+<section class="scr" id="s-unit">
+  <div class="bar"><button class="btn white M back" onclick="go('units')"><span class="arw"></span>もどる</button><div class="ttl">6年　拡大図と縮図</div></div>
+  <div id="menus"></div>
+</section>
+
+<!-- 4 ステージえらび（かく） -->
+<section class="scr" id="s-stages">
+  <div class="bar"><button class="btn white M back" onclick="go('unit')"><span class="arw"></span>もどる</button><div class="ttl">かく　ステージ を えらぼう</div></div>
+  <div id="stagecards"></div>
+</section>
+
+<!-- 5 しる（説明スライド） -->
+<section class="scr" id="s-lesson">
+  <div class="bar"><button class="btn white M back" onclick="go('unit')"><span class="arw"></span>もどる</button><div class="ttl">しる 1　拡大図・縮図って なに？</div><div class="chip">2 / 5</div></div>
+  <div class="panel figbox"><svg id="lsvg" width="872" height="464"></svg><div class="kbadge" id="kb">もとの図</div></div>
+  <div class="panel side">
+    <div class="h">ポイント</div>
+    <div class="pt" id="lpt">形を かえずに<br><b>大きくした図</b> を<br>拡大図、<br><b>小さくした図</b> を<br>縮図 というよ。</div>
+    <button class="btn sky M" style="left:20px;top:250px;width:136px" onclick="lk(-1)">ちいさく</button>
+    <button class="btn sky M" style="left:176px;top:250px;width:136px" onclick="lk(1)">おおきく</button>
+    <button class="btn peach M" id="tate" style="left:20px;top:318px;width:292px" onclick="tt()">たてだけ のばす</button>
+    <div class="dots"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+    <button class="btn white M" style="left:20px;top:404px;width:136px">まえ</button>
+    <button class="btn mint M" style="left:176px;top:404px;width:136px">つぎ</button>
+  </div>
+</section>
+
+<!-- 6 みわける -->
+<section class="scr" id="s-choose">
+  <div class="bar"><button class="btn white M back" onclick="go('unit')"><span class="arw"></span>もどる</button><div class="ttl">みわける 1　三角形</div><div class="chip">2 / 5 もん</div></div>
+  <div class="q">あ の 拡大図 や 縮図 を ぜんぶ えらぼう</div>
+  <div id="cells"></div>
+  <div class="panel side">
+    <div class="prog"><i class="done"></i><i class="on"></i><i></i><i></i><i></i></div>
+    <div class="pt" style="top:78px;font-size:20px;color:var(--ink2)" id="cmsg">えらんだら<br>こたえあわせ を おしてね。</div>
+    <div id="bai"></div>
+    <button class="btn lemon M" style="left:20px;top:336px;width:292px" onclick="hint(['角の大きさが ぜんぶ 同じか、まず 見てみよう。','つぎは 辺の長さ。どの辺も 同じ 何倍 に なっているかな？'])">ヒント</button>
+    <button class="btn mint M" id="cbtn" style="left:20px;top:404px;width:292px" onclick="ccheck()">こたえあわせ</button>
+  </div>
+</section>
+
+<!-- 7 かく -->
+<section class="scr" id="s-draw">
+  <div class="bar"><button class="btn white M back" onclick="go('stages')"><span class="arw"></span>もどる</button><div class="ttl">かく 1　方眼に 2倍の拡大図</div><div class="chip">1 / 3 もん</div></div>
+  <div class="q">三角形ABC の 2倍の拡大図 を かきましょう</div>
+  <svg id="grid" width="880" height="412"></svg>
+  <div class="panel side">
+    <div class="prog"><i class="on"></i><i></i><i></i></div>
+    <div class="pt" style="top:74px;font-size:19px;line-height:1.5;color:var(--ink2)">点を クリック → つぎの点を<br>クリック で 線が ひけるよ。</div>
+    <button class="btn white M tool" style="top:172px" onclick="dundo()">1本 けす</button>
+    <button class="btn white M tool" style="top:240px" onclick="dclear()">ぜんぶ けす</button>
+    <button class="btn lemon M tool" style="top:336px" onclick="hint(['辺BCは 横に 3マス。2倍だと 何マスかな？','横に 6マス、たてに 8マス の 直角三角形 に なるよ。'])">ヒント</button>
+    <button class="btn mint M tool" style="top:404px" onclick="dcheck()">こたえあわせ</button>
+  </div>
+</section>
+
+<!-- 8 もとめる -->
+<section class="scr" id="s-calc">
+  <div class="bar"><button class="btn white M back" onclick="go('unit')"><span class="arw"></span>もどる</button><div class="ttl">もとめる 1　対応する辺と角</div><div class="chip">3 / 5 もん</div></div>
+  <div class="q">三角形DEF は 三角形ABC の 拡大図 です。辺EF は 何cm？</div>
+  <div class="panel" style="left:24px;top:144px;width:880px;height:412px"><svg id="csvg" width="872" height="404"></svg></div>
+  <div class="panel side">
+    <div class="disp"><span id="dv">&nbsp;</span><span class="u">cm</span></div>
+    <div id="keys"></div>
+  </div>
+</section>
+
+<div id="bal"><div class="nm">うさとろ</div><div id="baltxt"></div></div>
+<div id="usa"><img src="../images/usatoro.webp" alt=""></div>
+</div></div>
+
+<script>
+// ---------- 画面の拡大縮小 ----------
+function fit(){const s=Math.min(innerWidth/1280,innerHeight/720),st=document.getElementById('stage');st.style.transform=`scale(${s})`;st.style.left=(innerWidth-1280*s)/2+'px';st.style.top=(innerHeight-720*s)/2+'px'}
+addEventListener('resize',fit);fit();
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+function el(tag,at,par){const e=document.createElementNS(NS,tag);for(const k in at)e.setAttribute(k,at[k]);if(par)par.appendChild(e);return e}
+function txt(par,x,y,s,size,col,anchor){const t=el('text',{x,y,'font-size':size||16,fill:col||'#4d4270','text-anchor':anchor||'middle','dominant-baseline':'central'},par);t.textContent=s;return t}
+
+// ---------- うさとろ ----------
+function say(s,mood){$('baltxt').innerHTML=s;const u=$('usa');u.className='';void u.offsetWidth;if(mood)u.className=mood}
+const SAY={
+ title:'さんすうスペースラボ へ ようこそ！<br>いっしょに 図形の ふしぎ を しらべよう。',
+ units:'どの たんげん を べんきょう する？',
+ unit:'まずは「しる」で しくみ を 知ろう。<br>星を あつめると クリア だよ。',
+ stages:'金の星 は ミスなし・ヒントなし の しるし だよ。',
+ lesson:'「おおきく」「ちいさく」を おしてみて。<br>形は かわらずに 大きさ だけ かわるね。',
+ choose:'角の大きさ と 辺の長さ を よく 見てね。<br>向きが ちがっても 拡大図 だよ。',
+ draw:'もとの図 の マスを 数えて、2倍 に しよう。<br>同じ点を もう一度 クリック すると 線が とまるよ。',
+ calc:'辺BC と 辺EF が 対応 しているよ。<br>何倍 に なっているかな？'};
+function go(n){document.querySelectorAll('.scr').forEach(s=>s.classList.remove('on'));$('s-'+n).classList.add('on');
+  document.getElementById('stage').classList.toggle('notalk',n==='title');say(SAY[n])}
+let hs=0;function hint(a){say(a[Math.min(hs,a.length-1)]);hs++}
+
+// ---------- 図形の計算と描画（本実装でも使う部品） ----------
+const G={
+ len:(a,b)=>Math.hypot(b[0]-a[0],b[1]-a[1]),
+ area(p){let s=0;for(let i=0;i<p.length;i++){const a=p[i],b=p[(i+1)%p.length];s+=a[0]*b[1]-b[0]*a[1]}return s/2},
+ ang(p,i){const n=p.length,a=p[(i+n-1)%n],b=p[i],c=p[(i+1)%n];const u=[a[0]-b[0],a[1]-b[1]],v=[c[0]-b[0],c[1]-b[1]];
+   return Math.acos(Math.max(-1,Math.min(1,(u[0]*v[0]+u[1]*v[1])/(Math.hypot(...u)*Math.hypot(...v)))))*180/Math.PI},
+ fmt:x=>{const r=Math.round(x*10)/10;return (Number.isInteger(r)?r:r.toFixed(1))+''},
+ bbox(p){const xs=p.map(q=>q[0]),ys=p.map(q=>q[1]);return{x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)}},
+ tf(p,k,rot,flip,sy){return p.map(([x,y])=>{if(flip)x=-x;let X=x*k,Y=y*k*(sy||1);for(let r=0;r<rot;r++)[X,Y]=[-Y,X];return[X,Y]})},
+ // 多角形をかく。o:{s:1cmのpx, cx,cy:中心, side:辺ラベル, angle:角ラベル, names:頂点名, fill, stroke, hide:{辺の番号:'□'}}
+ draw(svg,p,o){const s=o.s,b=G.bbox(p),ox=o.cx-(b.x+b.w/2)*s,oy=o.cy-(b.y+b.h/2)*s;
+  const P=p.map(([x,y])=>[ox+x*s,oy+y*s]),g=el('g',{},svg),cw=G.area(P)>0?1:-1,n=P.length;
+  el('polygon',{points:P.map(q=>q.join(',')).join(' '),fill:o.fill||'#ddf0ff',stroke:o.stroke||'#5d9fd8','stroke-width':3,'stroke-linejoin':'round'},g);
+  let per=0;for(let i=0;i<P.length;i++)per+=Math.hypot(P[(i+1)%P.length][0]-P[i][0],P[(i+1)%P.length][1]-P[i][1]);const small=2*Math.abs(G.area(P))/per<26;
+  if(o.side)for(let i=0;i<n;i++){const a=P[i],c=P[(i+1)%n],m=[(a[0]+c[0])/2,(a[1]+c[1])/2],L=Math.hypot(c[0]-a[0],c[1]-a[1]);
+    const nx=(c[1]-a[1])/L*cw,ny=-(c[0]-a[0])/L*cw,t=(o.hide&&o.hide[i])||G.fmt(G.len(p[i],p[(i+1)%n]))+'cm';
+    const off=12+Math.abs(nx)*(t.length*4.6)+Math.abs(ny)*9;txt(g,m[0]+nx*off,m[1]+ny*off,t,o.fs||16,o.hide&&o.hide[i]?'#e46f9f':'#4d4270')}
+  if(o.angle)for(let i=0;i<n;i++){const a=P[(i+n-1)%n],b2=P[i],c=P[(i+1)%n];
+    const u=[a[0]-b2[0],a[1]-b2[1]],v=[c[0]-b2[0],c[1]-b2[1]],lu=Math.hypot(...u),lv=Math.hypot(...v);
+    let bx=u[0]/lu+v[0]/lv,by=u[1]/lu+v[1]/lv;const bl=Math.hypot(bx,by)||1;bx/=bl;by/=bl;const A=G.ang(p,i);
+    const d=o.names?Math.min(50,22/Math.sin(A*Math.PI/360)):-20-(1-Math.abs(bx))*4;txt(g,b2[0]+bx*d,b2[1]+by*d,Math.round(A)+'°',o.fs?o.fs-1:15,'#8270cf')}
+  if(o.names)o.names.forEach((nm,i)=>{const q=P[i],c=[P.reduce((s,r)=>s+r[0],0)/n,P.reduce((s,r)=>s+r[1],0)/n];const dx=q[0]-c[0],dy=q[1]-c[1],dl=Math.hypot(dx,dy)||1;
+    txt(g,q[0]+dx/dl*22,q[1]+dy/dl*22,nm,20,'#4d4270')});
+  return{g,P}}
+};
+
+// ---------- 単元ホーム ----------
+const STAR=(fill)=>`<svg viewBox="0 0 24 24" width="100%" height="100%"><path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5L2.5 9.4l6.6-.9z" fill="${fill}" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+const ICON={
+ shiru:'<svg width="110" height="110" viewBox="0 0 110 110"><polygon points="20,85 50,85 20,60" fill="#fff" stroke="#4d4270" stroke-width="4"/><polygon points="45,90 95,90 45,48" fill="none" stroke="#fff" stroke-width="5" stroke-dasharray="7 6"/><circle cx="78" cy="30" r="14" fill="none" stroke="#fff" stroke-width="5"/><line x1="88" y1="40" x2="100" y2="52" stroke="#fff" stroke-width="6" stroke-linecap="round"/></svg>',
+ miwake:'<svg width="110" height="110" viewBox="0 0 110 110"><polygon points="15,50 45,50 15,25" fill="#fff"/><polygon points="55,95 100,95 55,57" fill="#fff"/><path d="M62 30l8 8 16-18" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ kaku:'<svg width="110" height="110" viewBox="0 0 110 110"><g stroke="rgba(255,255,255,.55)" stroke-width="2"><path d="M15 15v80M35 15v80M55 15v80M75 15v80M95 15v80M15 15h80M15 35h80M15 55h80M15 75h80M15 95h80"/></g><polyline points="15,95 75,95 15,35 15,95" fill="none" stroke="#fff" stroke-width="6" stroke-linejoin="round"/><circle cx="75" cy="95" r="7" fill="#fff"/></svg>',
+ motome:'<svg width="110" height="110" viewBox="0 0 110 110"><rect x="18" y="18" width="74" height="74" rx="14" fill="none" stroke="#fff" stroke-width="6"/><path d="M38 42h34M55 25v34M38 74h34M38 84h34" stroke="#fff" stroke-width="6" stroke-linecap="round"/></svg>',
+ test:'<svg width="110" height="110" viewBox="0 0 110 110"><circle cx="55" cy="62" r="32" fill="#fff"/><path d="M38 12l17 22 17-22" fill="none" stroke="#fff" stroke-width="8" stroke-linejoin="round"/><path d="M55 46l5 10 11 1.5-8 7.5 2 11-10-5.5-10 5.5 2-11-8-7.5 11-1.5z" fill="#ffcf5c"/></svg>'};
+const MENUS=[['shiru','しる','しくみ を<br>知ろう','#9fd3ff','4 / 8'],['miwake','みわける','拡大図・縮図<br>を さがそう','#ffadcf','1 / 3'],['kaku','かく','方眼に<br>かいてみよう','#8fdcc0','2 / 5'],['motome','もとめる','長さ や 角 を<br>計算しよう','#ffc2a3','0 / 4'],['test','テスト','10問 で<br>たしかめよう','#ffcf5c','さいこう 7点']];
+$('menus').innerHTML=MENUS.map((m,i)=>`<div class="card mcard" style="left:${26+i*250}px" onclick="go('${['lesson','choose','stages','calc','unit'][i]}')"><div class="ic" style="background:${m[3]}">${ICON[m[0]]}</div><div class="t">${m[1]}</div><div class="d">${m[2]}</div><div class="p">${i<4?`<span style="width:22px;height:22px">${STAR('#ffcf5c')}</span>`:''}${m[4]}</div></div>`).join('');
+
+// ---------- ステージえらび ----------
+const ST=[['方眼に 2倍の拡大図','三角形・四角形','g'],['方眼に 2倍・3倍','四角形','s'],['方眼に 1/2の縮図','三角形・四角形',''],['頂点A から かく','場所 が きまっている',''],['1つの点 を 中心に','2倍・1/2','']];
+$('stagecards').innerHTML=ST.map((s,i)=>`<div class="card scard" style="left:${64+(i%4)*296}px;top:${110+Math.floor(i/4)*224}px" onclick="go('draw')"><div class="no">${i+1}</div><div class="st">${STAR(s[2]==='g'?'#ffcf5c':s[2]==='s'?'#aeb6d0':'#ece8f6')}</div><div class="t">${s[0]}</div><div class="d">${s[1]}</div></div>`).join('');
+
+// ---------- しる（スライダー） ----------
+const HOUSE=[[0,0],[2,-1.5],[4,0],[4,3],[0,3]];let K=[0.5,1,1.5,2],ki=1,tate=false;
+function lesson(){const s=$('lsvg');s.innerHTML='';const k=K[ki],sy=tate?1.8:1;
+  for(let x=0;x<=872;x+=36)el('line',{x1:x,y1:0,x2:x,y2:464,stroke:'#eef0fb'},s);for(let y=0;y<=464;y+=36)el('line',{x1:0,y1:y,x2:872,y2:y,stroke:'#eef0fb'},s);
+  G.draw(s,HOUSE,{s:30,cx:170,cy:250,fill:'#fff',stroke:'#c8bff0',side:1});txt(s,170,430,'もとの図',20,'#8a7aa8');
+  const q=HOUSE.map(([x,y])=>[x*k,y*k*sy]);G.draw(s,q,{s:30,cx:580,cy:250,side:1,fill:tate?'#ffe3ee':'#ddf0ff',stroke:tate?'#e46f9f':'#5d9fd8'});
+  $('kb').textContent=tate?'たてだけ のばした図（形が かわった）':k===1?'もとの図と 同じ':k>1?`もとの図の ${k}倍の拡大図`:'もとの図の 1/2の縮図';
+  $('kb').style.background=tate?'#ffc4dd':'';}
+function lk(d){tate=false;$('tate').classList.remove('sel');ki=Math.max(0,Math.min(K.length-1,ki+d));lesson();say(ki>1?'大きく なったね。形は 同じ まま だよ。':ki<1?'小さく なったね。これが 縮図 だよ。':'もとの図 と 同じ 大きさ だよ。')}
+function tt(){tate=!tate;ki=1;$('tate').classList.toggle('sel',tate);lesson();say(tate?'たて だけ のばすと、形が かわっちゃう。<br>これは 拡大図 では ないよ。':'もとに もどしたよ。','')}
+lesson();
+
+// ---------- みわける ----------
+const BASE=[[0,0],[4,0],[0,3]];
+const CAND=[
+ {p:BASE,base:1},
+ {p:G.tf(BASE,2,1),ok:1,bai:'2倍の拡大図'},
+ {p:G.tf(BASE,2,0,0,1.33)},
+ {p:G.tf(BASE,0.5,0,1),ok:1,bai:'1/2の縮図'},
+ {p:[[0,0],[6,0],[0,3]]},
+ {p:G.tf(BASE,1.5,2),ok:1,bai:'1.5倍の拡大図'}];
+const NAMES=['あ','い','う','え','お','か'];
+let sel=new Set(),cdone=false;
+// 大きさは じっさいの比の 平方根 で ちぢめて表示（大小の関係は そのまま、文字が読める大きさに）
+function cells(){const A0=Math.abs(G.area(BASE));CAND.forEach(c=>{const kk=Math.sqrt(Math.abs(G.area(c.p))/A0);c.f=Math.sqrt(kk)/kk});
+  let cc=1e9;CAND.forEach(c=>{const b=G.bbox(c.p);cc=Math.min(cc,178/(b.w*c.f),104/(b.h*c.f))});
+  $('cells').innerHTML='';CAND.forEach((c,i)=>{const d=document.createElement('div');d.className='cell'+(c.base?' base':'');d.style.left=24+(i%3)*298+'px';d.style.top=148+Math.floor(i/3)*206+'px';
+   d.innerHTML=`<div class="nm">${NAMES[i]}</div>`;const sv=el('svg',{width:276,height:196});d.appendChild(sv);G.draw(sv,c.p,{s:cc*c.f,cx:148,cy:106,side:1,angle:1,fs:15,fill:c.base?'#fff':'#ddf0ff'});
+   if(!c.base)d.onclick=()=>{if(cdone)return;sel.has(i)?sel.delete(i):sel.add(i);d.classList.toggle('on')};$('cells').appendChild(d)})}
+function ccheck(){if(cdone)return;const right=CAND.map((c,i)=>c.ok?i:-1).filter(i=>i>0);const ok=right.length===sel.size&&right.every(i=>sel.has(i));
+  [...$('cells').children].forEach((d,i)=>{if(CAND[i].base)return;d.classList.remove('on');if(sel.has(i))d.classList.add(CAND[i].ok?'ok':'ng');else if(CAND[i].ok&&!ok)d.classList.add('ok')});
+  cdone=true;$('cbtn').classList.add('dis');
+  if(ok){say('せいかい！ い・え・か が 拡大図・縮図 だよ。<br>では、い は あ の 何倍 かな？','jump');$('cmsg').innerHTML='い は あ の<br>何倍 かな？';
+   $('bai').innerHTML=['1.5倍の拡大図','2倍の拡大図','3倍の拡大図','1/2の縮図'].map((t,j)=>`<button class="btn white S" style="left:20px;top:${150+j*0}px;display:none">${t}</button>`).join('');
+   const opts=['1.5倍','2倍','3倍','1/2'];$('bai').innerHTML=opts.map((t,j)=>`<button class="btn sky M" style="left:${20+(j%2)*156}px;top:${168+Math.floor(j/2)*68}px;width:136px" onclick="bai(this,'${t}')">${t}</button>`).join('')}
+  else{say('おしい！ う は 角の大きさ が ちがうよ。<br>お は 辺の長さ の 倍が そろって いないね。','sad');$('cmsg').innerHTML='みどり が 正解 だよ。'}}
+function bai(b,t){if(t==='2倍'){b.classList.add('sel');say('そのとおり！ どの辺も 2倍 に なっているね。','jump')}else{say('辺の長さ を くらべてみよう。4cm が 8cm に なっているよ。','sad')}}
+cells();
+
+// ---------- かく（直線ツール） ----------
+const C=29,COLS=30,ROWS=14,ORG=[[2,3],[2,7],[5,7]],TK=2;
+let segs=[],start=null,hover=null,judged=null;
+function gp(e){const r=$('grid').getBoundingClientRect(),sc=r.width/880;const x=Math.round(((e.clientX-r.left)/sc-5)/C),y=Math.round(((e.clientY-r.top)/sc-5)/C);return[Math.max(0,Math.min(COLS,x)),Math.max(0,Math.min(ROWS,y))]}
+const X=i=>5+i*C;
+function grid(){const s=$('grid');s.innerHTML='';el('rect',{x:0,y:0,width:880,height:412,rx:20,fill:'#fff'},s);
+  for(let i=0;i<=COLS;i++)el('line',{x1:X(i),y1:X(0),x2:X(i),y2:X(ROWS),stroke:i%5?'#e3e7f7':'#c9cfe9','stroke-width':i%5?1:1.5},s);
+  for(let j=0;j<=ROWS;j++)el('line',{x1:X(0),y1:X(j),x2:X(COLS),y2:X(j),stroke:j%5?'#e3e7f7':'#c9cfe9','stroke-width':j%5?1:1.5},s);
+  el('polygon',{points:ORG.map(p=>X(p[0])+','+X(p[1])).join(' '),fill:'#ddf0ff',stroke:'#5d9fd8','stroke-width':3},s);
+  ['A','B','C'].forEach((n,i)=>txt(s,X(ORG[i][0])+(i===2?16:-16),X(ORG[i][1])+(i===0?-12:14),n,20));
+  segs.forEach((g,i)=>el('line',{x1:X(g[0][0]),y1:X(g[0][1]),x2:X(g[1][0]),y2:X(g[1][1]),stroke:judged?(judged.has(i)?'#ff5f9e':'#3fb88c'):'#7a63d6','stroke-width':5,'stroke-linecap':'round'},s));
+  if(start&&hover)el('line',{x1:X(start[0]),y1:X(start[1]),x2:X(hover[0]),y2:X(hover[1]),stroke:'#b9a6f2','stroke-width':4,'stroke-dasharray':'8 6','stroke-linecap':'round'},s);
+  if(hover)el('circle',{cx:X(hover[0]),cy:X(hover[1]),r:7,fill:'none',stroke:'#7a63d6','stroke-width':3},s);
+  if(start)el('circle',{cx:X(start[0]),cy:X(start[1]),r:8,fill:'#ff92bf',stroke:'#fff','stroke-width':3},s)}
+$('grid').addEventListener('pointermove',e=>{hover=gp(e);grid()});
+$('grid').addEventListener('pointerleave',()=>{hover=null;grid()});
+$('grid').addEventListener('click',e=>{const p=gp(e);judged=null;
+  if(!start){start=p}else if(p[0]===start[0]&&p[1]===start[1]){start=null}else{segs.push([start,p]);start=p}grid()});
+function dundo(){segs.pop();start=segs.length?segs[segs.length-1][1]:null;judged=null;grid()}
+function dclear(){segs=[];start=null;judged=null;grid()}
+// 線を 1マスぶんの小さな線に分けて、集合で くらべる（分けてひいても・重ねても 同じに あつかう）
+function pieces(a,b){const dx=b[0]-a[0],dy=b[1]-a[1],g=(function f(m,n){return n?f(n,m%n):m})(Math.abs(dx),Math.abs(dy)),sx=dx/g,sy=dy/g,out=[];
+  for(let i=0;i<g;i++){const p=[a[0]+sx*i,a[1]+sy*i],q=[p[0]+sx,p[1]+sy];out.push(p[0]<q[0]||(p[0]===q[0]&&p[1]<q[1])?p+'|'+q:q+'|'+p)}return out}
+function dcheck(){start=null;const T=ORG.map(([x,y])=>[x*TK,y*TK]);const mine=new Set();segs.forEach(s=>pieces(...s).forEach(k=>mine.add(k)));
+  let best=null;const pts=segs.flat();
+  for(const p of pts)for(const v of T){const t=[p[0]-v[0],p[1]-v[1]],tp=new Set();for(let i=0;i<T.length;i++)pieces([T[i][0]+t[0],T[i][1]+t[1]],[T[(i+1)%T.length][0]+t[0],T[(i+1)%T.length][1]+t[1]]).forEach(k=>tp.add(k));
+    const miss=[...tp].filter(k=>!mine.has(k)).length,extra=[...mine].filter(k=>!tp.has(k)).length;if(!best||miss+extra<best.s)best={s:miss+extra,tp}}
+  if(best&&best.s===0){judged=new Set();say('せいかい！ どの辺も 2倍 に なっているね。','jump')}
+  else{judged=new Set();segs.forEach((s,i)=>{if(!best||pieces(...s).some(k=>!best.tp.has(k)))judged.add(i)});say(segs.length?'赤い線 を 見なおそう。<br>もとの図 の マスの数 を 2倍 に してね。':'まだ 線 が ないよ。点を クリック してみよう。','sad')}
+  grid()}
+grid();
+
+// ---------- もとめる（テンキー） ----------
+(function(){const s=$('csvg');const A=[[0,0],[4,0],[0,3]];
+  G.draw(s,A,{s:44,cx:200,cy:210,side:1,angle:1,names:['B','C','A'],fill:'#fff'});
+  G.draw(s,A.map(([x,y])=>[x*2,y*2]),{s:44,cx:600,cy:210,side:1,angle:1,names:['E','F','D'],hide:{0:'□cm'}});
+  txt(s,200,370,'三角形ABC',20,'#8a7aa8');txt(s,600,370,'三角形DEF',20,'#8a7aa8');
+  // AC=2→DF=4 なので2倍。AB と DE も表示される
+})();
+let dv='';const KEYS=['7','8','9','4','5','6','1','2','3','0','.','けす'];
+$('keys').innerHTML=KEYS.map((k,i)=>`<button class="btn ${k==='けす'?'peach':'white'} M key" style="left:${20+(i%3)*104}px;top:${110+Math.floor(i/3)*68}px" onclick="kp('${k}')">${k}</button>`).join('')+
+ `<button class="btn mint M" style="left:20px;top:404px;width:292px" onclick="kp('ok')">けってい</button>`;
+function kp(k){if(k==='けす')dv=dv.slice(0,-1);else if(k==='ok'){if(dv==='8')say('せいかい！ 4cm の 2倍 で 8cm だね。','jump');else say('辺BC は 4cm。2倍 に すると……？','sad')}else if(dv.length<5)dv+=k;$('dv').innerHTML=dv||'&nbsp;'}
+say(SAY.title);document.getElementById('stage').classList.add('notalk');
+</script>
+</body>
+</html>
